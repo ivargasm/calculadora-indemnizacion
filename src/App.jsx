@@ -10,7 +10,7 @@ export default function CalculadoraIndemnizacion() {
   const [factorSalarioIntegrado, setFactorSalarioIntegrado] = useState(1.0);
   const [diasAguinaldo, setDiasAguinaldo] = useState(15);
   const [diasVacaciones, setDiasVacaciones] = useState(12);
-  const [salarioMinimo, setSalarioMinimo] = useState(207.44);
+  const [salarioMinimo, setSalarioMinimo] = useState(278.80);
   const [diasTrabajados, setDiasTrabajados] = useState(0);
   const [diasTrabajadosAnio, setDiasTrabajadosAnio] = useState(0);
   const [darkMode, setDarkMode] = useState(false);
