@@ -13,7 +13,8 @@ export default function CalculadoraIndemnizacion() {
   const [salarioMinimo, setSalarioMinimo] = useState(278.80);
   const [diasTrabajados, setDiasTrabajados] = useState(0);
   const [diasTrabajadosAnio, setDiasTrabajadosAnio] = useState(0);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState('dark');
+  const [diasVacacionesTrabajados, setDiasVacacionesTrabajados] = useState(0);
 
   // Alternar modo oscuro
   const toggleDarkMode = () => {
@@ -37,23 +38,64 @@ export default function CalculadoraIndemnizacion() {
       const diffTime = Math.abs(salida - entrada);
       setDiasTrabajados(Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
 
+      // Calcular años trabajados completos
+      const antiguedad = salida.getFullYear() - entrada.getFullYear();
+      const mesActual = salida.getMonth();
+      const diaActual = salida.getDate();
+      const mesEntrada = entrada.getMonth();
+      const diaEntrada = entrada.getDate();
+      let aniosTrabajados = antiguedad;
+      if (mesActual < mesEntrada || (mesActual === mesEntrada && diaActual < diaEntrada)) {
+        aniosTrabajados -= 1;
+      }
+
+      const diasVac = getDiasVacacionesPorAntiguedad(aniosTrabajados);
+      setDiasVacaciones(diasVac);
+
+      // calcular nueva fecha de entrada al año actual con el mismo mes y día
+      let nuevaFechaEntrada = new Date(salida.getFullYear(), entrada.getMonth(), entrada.getDate())
+
+      // si la nueva fecha de entrada es mayor a la fecha de salida, restar un año
+      if (nuevaFechaEntrada > salida) {
+          nuevaFechaEntrada.setFullYear(nuevaFechaEntrada.getFullYear() - 1);
+      }
+
+      // Calcular días trabajados en el último año
+      setDiasVacacionesTrabajados(Math.ceil((salida - nuevaFechaEntrada) / (1000 * 60 * 60 * 24)));
+
       const inicioAnio = new Date(salida.getFullYear(), 0, 1);
       const diasTrabajadosAnio = Math.ceil((salida - (entrada > inicioAnio ? entrada : inicioAnio)) / (1000 * 60 * 60 * 24));
       setDiasTrabajadosAnio(diasTrabajadosAnio > 0 ? diasTrabajadosAnio : 0);
     }
   }, [fechaEntrada, fechaSalida]);
 
+  const getDiasVacacionesPorAntiguedad = (anios) => {
+    if (anios >= 31) return 32;
+    if (anios >= 26) return 30;
+    if (anios >= 21) return 28;
+    if (anios >= 16) return 26;
+    if (anios >= 11) return 24;
+    if (anios >= 6) return 22;
+    if (anios === 5) return 20;
+    if (anios === 4) return 18;
+    if (anios === 3) return 16;
+    if (anios === 2) return 14;
+    return 12; // por default año 1 o menos
+  };
+
   // Cálculos
   const salarioDiarioIntegrado = salarioDiario * factorSalarioIntegrado;
   const indemnizacion90 = salarioDiarioIntegrado * 90;
+  const indemnizacion45 = salarioDiarioIntegrado * 45;
   const aguinaldo = (diasAguinaldo / 365) * diasTrabajadosAnio * salarioDiario;
-  const vacaciones = (diasVacaciones / 365) * diasTrabajadosAnio * salarioDiario;
+  const vacaciones = (diasVacaciones / 365) * diasVacacionesTrabajados * salarioDiario;
   const primaVacacional = vacaciones / 4;
 
   const añosDeAntigüedad = diasTrabajados / 365;
-  const primaAntiguedad = añosDeAntigüedad >= 15 ? (12 / 365) * diasTrabajados * (2 * salarioMinimo) : 0;
+  const primaAntiguedad = (12 / 365) * diasTrabajados * (2 * salarioMinimo)
 
-  const totalFiniquito = aguinaldo + vacaciones + primaVacacional + indemnizacion90 + primaAntiguedad;
+  const totalFiniquito90 = (añosDeAntigüedad >= 15) ? aguinaldo + vacaciones + primaVacacional + indemnizacion90 + primaAntiguedad : aguinaldo + vacaciones + primaVacacional + indemnizacion90;
+  const totalFiniquito45 = (añosDeAntigüedad >= 15) ? aguinaldo + vacaciones + primaVacacional + indemnizacion45 + primaAntiguedad : aguinaldo + vacaciones + primaVacacional + indemnizacion45;
 
   return (
     <main className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center p-8 flex-col">
@@ -152,6 +194,9 @@ export default function CalculadoraIndemnizacion() {
             <div className="p-4 rounded-lg bg-blue-50 dark:bg-gray-700">
               <p className="font-semibold">Indemnización (90 días): <span className="text-blue-500 dark:text-blue-400">${indemnizacion90.toFixed(2)}</span></p>
             </div>
+            <div className="p-4 rounded-lg bg-blue-50 dark:bg-gray-700">
+              <p className="font-semibold">Indemnización (45 días): <span className="text-blue-500 dark:text-blue-400">${indemnizacion45.toFixed(2)}</span></p>
+            </div>
             <div className="p-4 rounded-lg bg-green-50 dark:bg-gray-700">
               <p className="font-semibold">Aguinaldo: <span className="text-green-500 dark:text-green-400">${aguinaldo.toFixed(2)}</span></p>
             </div>
@@ -164,7 +209,7 @@ export default function CalculadoraIndemnizacion() {
             <div className="p-4 rounded-lg bg-pink-50 dark:bg-gray-700">
               <p className="font-semibold">Prima de Antigüedad: <span className="text-pink-500 dark:text-pink-400">${primaAntiguedad.toFixed(2)}</span></p>
               {añosDeAntigüedad < 15 && (
-                <p className="text-sm mt-1 text-gray-500 dark:text-gray-400">* La prima de antigüedad solo aplica con 15 años o más de servicio.</p>
+                <p className="text-sm mt-1 text-gray-500 dark:text-gray-400">* La prima de antigüedad es obligatoria con 15 años o más de servicio.</p>
               )}
             </div>
           </div>
@@ -172,7 +217,10 @@ export default function CalculadoraIndemnizacion() {
 
         {/* Total Finiquito */}
         <section className="mt-8">
-          <h3 className="text-xl font-bold text-center">Total Finiquito: <span className="text-blue-500 dark:text-blue-400">${totalFiniquito.toFixed(2)}</span></h3>
+          <h3 className="text-xl font-bold text-center">Total Finiquito(45): <span className="text-blue-500 dark:text-blue-400">${totalFiniquito45.toFixed(2)}</span></h3>
+        </section>
+        <section className="mt-8">
+          <h3 className="text-xl font-bold text-center">Total Finiquito(90): <span className="text-blue-500 dark:text-blue-400">${totalFiniquito90.toFixed(2)}</span></h3>
         </section>
       </section>
 
