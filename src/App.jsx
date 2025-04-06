@@ -216,11 +216,14 @@ export default function CalculadoraIndemnizacion() {
         </section>
 
         {/* Total Finiquito */}
-        <section className="mt-8">
-          <h3 className="text-xl font-bold text-center">Total Finiquito(45): <span className="text-blue-500 dark:text-blue-400">${totalFiniquito45.toFixed(2)}</span></h3>
-        </section>
-        <section className="mt-8">
-          <h3 className="text-xl font-bold text-center">Total Finiquito(90): <span className="text-blue-500 dark:text-blue-400">${totalFiniquito90.toFixed(2)}</span></h3>
+        <section className='flex flex-col items-center justify-center md:gap-8 md:flex-row'>
+          <section className="mt-8">
+            <h3 className="text-xl font-bold text-center">Total Finiquito(45): <span className="text-blue-500 dark:text-blue-400">${totalFiniquito45.toFixed(2)}</span></h3>
+          </section>
+          <section className="mt-8">
+            <h3 className="text-xl font-bold text-center">Total Finiquito(90): <span className="text-blue-500 dark:text-blue-400">${totalFiniquito90.toFixed(2)}</span></h3>
+          </section>
+
         </section>
       </section>
 
